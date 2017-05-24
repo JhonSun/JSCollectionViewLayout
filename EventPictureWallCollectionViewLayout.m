@@ -6,12 +6,12 @@
 //  Copyright © 2017年 drision. All rights reserved.
 //
 
-#import "CWPictureWallCollectionViewLayout.h"
+#import "EventPictureWallCollectionViewLayout.h"
 
 #define NewDefaultCollectionViewWidth  self.collectionView.frame.size.width
 
 //static 只在当前作用域使用 const 不可修改的
-static const UIEdgeInsets NewDefaultInsets={5,5,5,5};
+static const UIEdgeInsets NewDefaultInsets={10,10,10,10};
 
 //定义行列之间的间距
 static const CGFloat NewDefaultColumn = 10;
@@ -19,10 +19,10 @@ static const CGFloat NewDefaultColumn = 10;
 //定义默认的列数
 static int NewDeraultNumber = 2;
 
-//额外的高度
-static CGFloat const extraHeight = 15 + 5 + 20 + 5;
+//额外的高度(其他控件的高度以及间隙等)
+static CGFloat const extraHeight = 10 + 10 + 16 + 9;
 
-@interface CWPictureWallCollectionViewLayout ()
+@interface EventPictureWallCollectionViewLayout ()
 
 //创建数组存放 Y值最大值 存放cell的布局属性
 @property(nonatomic,strong) NSMutableArray *columnArr;
@@ -30,7 +30,7 @@ static CGFloat const extraHeight = 15 + 5 + 20 + 5;
 
 @end
 
-@implementation CWPictureWallCollectionViewLayout
+@implementation EventPictureWallCollectionViewLayout
 
 - (NSMutableArray *)columnArr{
     if (!_columnArr) {
@@ -62,9 +62,11 @@ static CGFloat const extraHeight = 15 + 5 + 20 + 5;
     
 #pragma mark -- 这里返回图片的高度
     
-    UIImage *image = self.imageList[indexPath.item];
+//    UIImage *image = self.imageList[indexPath.item];
+//    
+//    CGFloat height=image.size.height *(width/image.size.width) + extraHeight;
     
-    CGFloat height=image.size.height *(width/image.size.width) + extraHeight;
+    CGFloat height = [self.imageHeightArray[indexPath.item] floatValue] + [self.otherHeightArray[indexPath.item] floatValue] + extraHeight;
     
 #pragma mark -- 这里我们需要获取x坐标的值 如何获取 因为我们要做的是将需要展示的数组按顺序向下排列 而顺序就将后进来的插入到 最短的那一列 所以要获取这个x坐标我们就需要找出这个最小的y坐标才能确定
     NSInteger sum=0;
@@ -84,15 +86,17 @@ static CGFloat const extraHeight = 15 + 5 + 20 + 5;
         }
     }
     
-    CGFloat x=NewDefaultInsets.left +sum*(width+NewDefaultColumn);
+    CGFloat x=NewDefaultInsets.left + sum*(width+NewDefaultColumn);
     
-    CGFloat y=NewDefaultInsets.top+sumMaxY;
+    CGFloat y=NewDefaultColumn+sumMaxY;
+    
+    //如果是第一行，则不加行高
+    if (sumMaxY == NewDefaultInsets.top) y = sumMaxY;
     
     attr.frame=CGRectMake(x, y, width, height);
     
     //更新数组，获取最大的Y 下一次比较时用到  记住每一次都会走下面这个方法  而这个方法 第一次的时候都是0 第二次的时候两个0 第三次的时候就不一样了
     self.columnArr[sum]=@(CGRectGetMaxY(attr.frame));
-    
     return attr;
 }
 
@@ -143,7 +147,7 @@ static CGFloat const extraHeight = 15 + 5 + 20 + 5;
     }
     
     //这里返回的横坐标是什么都可以
-    return CGSizeMake(0, sumMaxY);
+    return CGSizeMake(0, sumMaxY + NewDefaultInsets.bottom);
 }
 - (nullable NSArray<__kindof UICollectionViewLayoutAttributes *> *)layoutAttributesForElementsInRect:(CGRect)rect{
     
